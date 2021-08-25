@@ -4,10 +4,16 @@
 """
 Rotinas de operação de nós X3D.
 
-Desenvolvido por:
+Desenvolvido por: Pedro Vero Fontes
 Disciplina: Computação Gráfica
-Data:
+Data: 24-08-21
 """
+
+def round_(n):
+    d = n - int(n)
+
+    if abs(d) >= 0.8: return int(n)+1
+    else: return int(n)
 
 import gpu          # Simula os recursos de uma GPU
 
@@ -22,12 +28,12 @@ def polypoint2D(point, colors):
     # O parâmetro colors é um dicionário com os tipos cores possíveis, para o Polypoint2D
     # você pode assumir o desenho dos pontos com a cor emissiva (emissiveColor).
 
-    # O print abaixo é só para vocês verificarem o funcionamento, DEVE SER REMOVIDO.
-    print("Polypoint2D : pontos = {0}".format(point)) # imprime no terminal pontos
-    print("Polypoint2D : colors = {0}".format(colors)) # imprime no terminal as cores
-    # Exemplo:
-    gpu.GPU.set_pixel(3, 1, 255, 0, 0) # altera um pixel da imagem (u, v, r, g, b)
-    # cuidado com as cores, o X3D especifica de (0,1) e o Framebuffer de (0,255)
+    r = colors['emissiveColor'][0]*255
+    g = colors['emissiveColor'][1]*255
+    b = colors['emissiveColor'][2]*255
+
+    for i in range(0, len(point)-1, 2):
+        gpu.GPU.set_pixel(int(round_(point[i])), int(round_(point[i+1])), r, g, b)
 
 # web3d.org/documents/specifications/19775-1/V3.0/Part01/components/geometry2D.html#Polyline2D
 def polyline2D(lineSegments, colors):
@@ -41,13 +47,55 @@ def polyline2D(lineSegments, colors):
     # vira uma quantidade par de valores.
     # O parâmetro colors é um dicionário com os tipos cores possíveis, para o Polyline2D
     # você pode assumir o desenho das linhas com a cor emissiva (emissiveColor).
-
+    
+    ''' 
+        print("Polyline2D : colors = {0}".format(colors)) # imprime no terminal as cores
+        # Exemplo:
+        pos_x = gpu.GPU.width//2
+        pos_y = gpu.GPU.height//2
+        gpu.GPU.set_pixel(pos_x, pos_y, 255, 0, 0) # altera um pixel da imagem (u, v, r, g, b)
+    '''
     print("Polyline2D : lineSegments = {0}".format(lineSegments)) # imprime no terminal
-    print("Polyline2D : colors = {0}".format(colors)) # imprime no terminal as cores
-    # Exemplo:
-    pos_x = gpu.GPU.width//2
-    pos_y = gpu.GPU.height//2
-    gpu.GPU.set_pixel(pos_x, pos_y, 255, 0, 0) # altera um pixel da imagem (u, v, r, g, b)
+    
+    r = colors['emissiveColor'][0]*255
+    g = colors['emissiveColor'][1]*255
+    b = colors['emissiveColor'][2]*255
+
+    for i in range(0, len(lineSegments)-2, 2):
+
+        x0 = int(round_(lineSegments[i]))
+        y0 = int(round_(lineSegments[i+1]))
+        x1 = int(round_(lineSegments[i+2]))
+        y1 = int(round_(lineSegments[i+3]))
+        
+        s = (y1-y0) / (x1-x0)
+
+        if s < 1 and s > -1:
+            y = y0
+            if x1 > x0:
+                for x in range(x0, x1):
+                    gpu.GPU.set_pixel(x, int(round_(y)), r, g, b)
+                    y += s
+            else:
+                for x in range(x0, x1, -1):
+                    gpu.GPU.set_pixel(x, int(round_(y)), r, g, b)
+                    y -= s
+        
+        else:
+            x = x0
+            if y1 > y0:
+                for y in range(y0, y1):
+                    gpu.GPU.set_pixel(int(round_(x)), y, r, g, b)
+                    x += 1/s
+            else:
+                for y in range(y0, y1, -1):
+                    gpu.GPU.set_pixel(int(round_(x)), y, r, g, b)
+                    x -= 1/s
+        
+
+        gpu.GPU.set_pixel(x1, int(round_(y1)), r, g, b)
+        
+
 
 # web3d.org/documents/specifications/19775-1/V3.0/Part01/components/geometry2D.html#TriangleSet2D
 def triangleSet2D(vertices, colors):
