@@ -32,8 +32,8 @@ def polypoint2D(point, colors):
     g = colors['emissiveColor'][1]*255
     b = colors['emissiveColor'][2]*255
 
-    for i in range(0, len(point)-1, 2):
-        gpu.GPU.set_pixel(int(round_(point[i])), int(round_(point[i+1])), r, g, b)
+    for i in range(0, len(point), 2):
+        gpu.GPU.set_pixel(int(point[i]), int(point[i+1]), r, g, b)
 
 # web3d.org/documents/specifications/19775-1/V3.0/Part01/components/geometry2D.html#Polyline2D
 def polyline2D(lineSegments, colors):
@@ -114,6 +114,19 @@ def polyline2D(lineSegments, colors):
         gpu.GPU.set_pixel(x1, int(round_(y1)), r, g, b)
         
 
+def inside(x0, y0, x1, y1, x2, y2, x, y):
+
+    L0 = (y1 - y0)*x - (x1-x0)*y + y0*(x1-x0) - x0*(y1-y0)
+    L1 = (y2 - y1)*x - (x2-x1)*y + y1*(x2-x1) - x1*(y2-y1)
+    L2 = (y0 - y2)*x - (x0-x2)*y + y2*(x0-x2) - x2*(y0-y2)
+
+    # print(f'L0 = {L0}, L1 = {L1}, L2 = {L2}')
+
+    if L0 > 0 and L1 > 0 and L2 > 0:
+        # print('\nDENTRO\n')
+        return True
+    else:
+        return False
 
 # web3d.org/documents/specifications/19775-1/V3.0/Part01/components/geometry2D.html#TriangleSet2D
 def triangleSet2D(vertices, colors):
@@ -135,7 +148,16 @@ def triangleSet2D(vertices, colors):
     g = colors['emissiveColor'][1]*255
     b = colors['emissiveColor'][2]*255
 
-    polyline2D(vertices, colors)
+    # Loop inicial para pegar varios triangulos
+    for i in range(len(vertices[::6])):
+        x0, y0, x1, y1, x2, y2 = vertices[i:i+6]
+
+        bound = (max([int(x0), int(x1), int(x2)]), min([int(x0), int(x1), int(x2)]), max([int(y0), int(y1), int(y2)]), min([int(y0), int(y1), int(y2)]))        
+
+        for k in range(bound[1], bound[0]):
+            for l in range(bound[3], bound[2]):
+                if inside(x0, y0, x1, y1, x2, y2, k+0.5, l+0.5):
+                    gpu.GPU.set_pixel(k, l, r, g, b)
 
 
 
