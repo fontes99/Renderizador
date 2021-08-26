@@ -12,7 +12,7 @@ Data: 24-08-21
 def round_(n):
     d = n - int(n)
 
-    if abs(d) >= 0.8: return int(n)+1
+    if abs(d) >= 0.6: return int(n)+1
     else: return int(n)
 
 import gpu          # Simula os recursos de uma GPU
@@ -68,30 +68,48 @@ def polyline2D(lineSegments, colors):
         x1 = int(round_(lineSegments[i+2]))
         y1 = int(round_(lineSegments[i+3]))
         
-        s = (y1-y0) / (x1-x0)
+        if x1 == x0:
+            if y0 < y1:
+                for i in range(y0, y1):
+                    gpu.GPU.set_pixel(x1, i, r, g, b)
+            else:
+                for i in range(y0, y1, -1):
+                    gpu.GPU.set_pixel(x1, i, r, g, b)
+                
 
-        if s < 1 and s > -1:
-            y = y0
-            if x1 > x0:
-                for x in range(x0, x1):
-                    gpu.GPU.set_pixel(x, int(round_(y)), r, g, b)
-                    y += s
+        elif y1 == y0:
+            if x0 < x1:
+                for i in range(x0, x1):
+                    gpu.GPU.set_pixel(y1, i, r, g, b)
             else:
-                for x in range(x0, x1, -1):
-                    gpu.GPU.set_pixel(x, int(round_(y)), r, g, b)
-                    y -= s
-        
+                for i in range(x0, x1, -1):
+                    gpu.GPU.set_pixel(y1, i, r, g, b)
+
         else:
-            x = x0
-            if y1 > y0:
-                for y in range(y0, y1):
-                    gpu.GPU.set_pixel(int(round_(x)), y, r, g, b)
-                    x += 1/s
+            s = (y1-y0) / (x1-x0)
+
+            if s < 1 and s > -1:
+                y = y0
+                if x1 > x0:
+                    for x in range(x0, x1):
+                        gpu.GPU.set_pixel(x, int(round_(y)), r, g, b)
+                        y += s
+                else:
+                    for x in range(x0, x1, -1):
+                        gpu.GPU.set_pixel(x, int(round_(y)), r, g, b)
+                        y -= s
+            
             else:
-                for y in range(y0, y1, -1):
-                    gpu.GPU.set_pixel(int(round_(x)), y, r, g, b)
-                    x -= 1/s
-        
+                x = x0
+                if y1 > y0:
+                    for y in range(y0, y1):
+                        gpu.GPU.set_pixel(int(round_(x)), y, r, g, b)
+                        x += 1/s
+                else:
+                    for y in range(y0, y1, -1):
+                        gpu.GPU.set_pixel(int(round_(x)), y, r, g, b)
+                        x -= 1/s
+            
 
         gpu.GPU.set_pixel(x1, int(round_(y1)), r, g, b)
         
@@ -107,10 +125,19 @@ def triangleSet2D(vertices, colors):
     # quantidade de pontos é sempre multiplo de 3, ou seja, 6 valores ou 12 valores, etc.
     # O parâmetro colors é um dicionário com os tipos cores possíveis, para o TriangleSet2D
     # você pode assumir o desenho das linhas com a cor emissiva (emissiveColor).
+
     print("TriangleSet2D : vertices = {0}".format(vertices)) # imprime no terminal
-    print("TriangleSet2D : colors = {0}".format(colors)) # imprime no terminal as cores
+    # print("TriangleSet2D : colors = {0}".format(colors)) # imprime no terminal as cores
     # Exemplo:
-    gpu.GPU.set_pixel(24, 8, 255, 255, 0) # altera um pixel da imagem (u, v, r, g, b)
+    # gpu.GPU.set_pixel(24, 8, 255, 255, 0) # altera um pixel da imagem (u, v, r, g, b)
+
+    r = colors['emissiveColor'][0]*255
+    g = colors['emissiveColor'][1]*255
+    b = colors['emissiveColor'][2]*255
+
+    polyline2D(vertices, colors)
+
+
 
 def triangleSet(point, colors):
     """Função usada para renderizar TriangleSet."""
